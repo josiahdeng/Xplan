@@ -1,0 +1,5 @@
+USE mysql;
+
+CREATE USER 'lucian'@'%' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON *.* TO 'lucian'@'%';
+FLUSH PRIVILEGES;

@@ -1,0 +1,44 @@
+version: '3.5'
+services:
+  db:
+    image: mysql/mysql-server:8.0.26
+    networks:
+      - logstash_sample
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: logstash_sample
+    volumes:
+      - ./mysql/init_sql:/docker-entrypoint-initdb.d
+  elasticsearch:
+    image: elasticsearch:7.17.3
+    networks:
+      - logstash_sample
+    environment:
+      ES_JAVA_OPTS: "-Xms256m -Xmx256m"
+      discovery.type: "single-node"
+  kibana:
+    image: kibana:7.17.3
+    networks:
+      - logstash_sample
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+  logstash:
+    image: logstash:7.17.3
+    depends_on:
+      - db
+      - elasticsearch
+    networks:
+      - logstash_sample
+    volumes:
+      - ./logstash/mysql_lib/mysql-connector-java-8.0.29.jar:/usr/share/logstash/lib/mysql-connector-java-8.0.29.jar
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+
+networks:
+  logstash_sample: {}
+
